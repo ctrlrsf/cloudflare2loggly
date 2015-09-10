@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """
 Download CloudFlare logs via SFTP and send them to Loggly via HTTP bulk
 API.
