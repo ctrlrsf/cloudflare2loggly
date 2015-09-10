@@ -1,0 +1,8 @@
+{
+  "check_interval": 5,
+  "loggly_token": "xyz",
+  "sftp_hostname": "logs.cloudflare.com",
+  "sftp_port": 1111,
+  "sftp_username": "cloudflare-sftp-username",
+  "sftp_private_key_file" : "/path/to/your/private.key"
+}
