@@ -17,8 +17,6 @@ import sys
 import time
 import sftplib
 
-LOGGLY_TAG = 'cloudflare'
-
 log = logging.getLogger(__name__)
 
 def gunzip_file(input_file_name, output_file_name):
@@ -105,7 +103,7 @@ def convert_log_dict_to_json(cf_dict):
     """ Convert a parsed log dictionary to JSON """
     return json.dumps(cf_dict, sort_keys=True)
 
-def process_cloudflare_log_file(loggly_token, filename):
+def process_cloudflare_log_file(loggly_token, loggly_tag, filename):
     """
     Parse a log file and ship it to Loggly
     """
@@ -124,9 +122,9 @@ def process_cloudflare_log_file(loggly_token, filename):
 
     log.debug('Number of records: %d', len(all_json_records))
 
-    process_log_batch(loggly_token, all_json_records)
+    process_log_batch(loggly_token, loggly_tag, all_json_records)
 
-def process_log_batch(loggly_token, record_list):
+def process_log_batch(loggly_token, loggly_tag, record_list):
     """
     Process a batch of log entries
     """
@@ -141,7 +139,7 @@ def process_log_batch(loggly_token, record_list):
         # have collected in buffer so far, and clear out buffer
         if len(string_buffer) + len(record) >= loggly_limit:
             loggly_upload_records(loggly_token,
-                                  LOGGLY_TAG,
+                                  loggly_tag,
                                   string_buffer)
             # Clear string buffer and add current record which hasn't been added yet
             string_buffer = record
@@ -152,7 +150,7 @@ def process_log_batch(loggly_token, record_list):
     # Send any remaining data in buffer
     if len(string_buffer) > 0:
         loggly_upload_records(loggly_token,
-                              LOGGLY_TAG,
+                              loggly_tag,
                               string_buffer)
 
 def process_cloudflare_logs(loggly_token,
@@ -160,7 +158,8 @@ def process_cloudflare_logs(loggly_token,
                             sftp_port,
                             sftp_username,
                             sftp_private_key_file,
-                            tmp_dir):
+                            tmp_dir
+                            loggly_tag):
     """
     Process CloudFlare logs
     - Gets list of files
@@ -196,7 +195,7 @@ def process_cloudflare_logs(loggly_token,
         log.debug('Uncompressing to: %s', uncompressed_file_name)
         gunzip_file(local_file_name, uncompressed_file_name)
 
-        process_cloudflare_log_file(loggly_token, uncompressed_file_name)
+        process_cloudflare_log_file(loggly_token, loggly_tag, uncompressed_file_name)
 
         log.debug('Deleting downloaded and uncompressed files.')
         os.unlink(local_file_name)
@@ -309,7 +308,8 @@ def main():
                                         config['sftp_port'],
                                         config['sftp_username'],
                                         config['sftp_private_key_file'],
-                                        config['tmp_dir'])
+                                        config['tmp_dir'],
+                                        config['loggly_tag'])
             except Exception as exception:
                 log.error('Exception occurred processing logs: %s', exception)
                 log.exception(exception)
@@ -322,7 +322,8 @@ def main():
                                 config['sftp_port'],
                                 config['sftp_username'],
                                 config['sftp_private_key_file'],
-                                config['tmp_dir'])
+                                config['tmp_dir'],
+                                config['loggly_tag'])
 
 if __name__ == '__main__':
     main()
