@@ -8,4 +8,4 @@ pip install cloudflare2loggly
 
 ## Usage
 
-cloudflare2loggly --config /etc/cloudflare2loggly.conf --daemon
+cloudflare2loggly  --daemon --config /etc/cloudflare2loggly/config.json
