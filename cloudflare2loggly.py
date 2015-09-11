@@ -158,7 +158,7 @@ def process_cloudflare_logs(loggly_token,
                             sftp_port,
                             sftp_username,
                             sftp_private_key_file,
-                            tmp_dir
+                            tmp_dir,
                             loggly_tag):
     """
     Process CloudFlare logs
