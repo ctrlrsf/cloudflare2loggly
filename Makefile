@@ -1,4 +1,4 @@
-VERSION=0.0.1
+VERSION=0.0.2
 
 help:
 	@echo "help"
@@ -17,7 +17,7 @@ clean:
 	rm -rf dist
 
 version:
-	@sed -i -orig /version/s/[0-9.]+/$(VERSION)/ setup.py
+	@sed -E -i -orig /version/s/[0-9.]+/$(VERSION)/ setup.py
 
 install:
 	-pip uninstall cloudflare2loggly --yes
