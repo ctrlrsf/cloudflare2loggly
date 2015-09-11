@@ -1,5 +1,6 @@
 {
   "check_interval": 5,
+  "tmp_dir": "/var/tmp/cloudflare2loggly",
   "loggly_token": "xyz",
   "sftp_hostname": "logs.cloudflare.com",
   "sftp_port": 1111,

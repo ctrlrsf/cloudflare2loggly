@@ -18,7 +18,6 @@ import time
 import sftplib
 
 LOGGLY_TAG = 'cloudflare'
-TMP_DIR = "tmp/"
 
 log = logging.getLogger(__name__)
 
@@ -160,7 +159,8 @@ def process_cloudflare_logs(loggly_token,
                             sftp_hostname,
                             sftp_port,
                             sftp_username,
-                            sftp_private_key_file):
+                            sftp_private_key_file,
+                            tmp_dir):
     """
     Process CloudFlare logs
     - Gets list of files
@@ -187,7 +187,7 @@ def process_cloudflare_logs(loggly_token,
     for sftp_file in sftp_files:
         log.info('Processing file: %s', sftp_file)
 
-        local_file_name = TMP_DIR + os.path.basename(sftp_file)
+        local_file_name = tmp_dir + os.path.basename(sftp_file)
         uncompressed_file_name = local_file_name.replace('.gz', '')
 
         log.debug('Downloading log file: %s', sftp_file)
@@ -216,13 +216,13 @@ def change_to_cwd_of_script():
     log.debug('Changing CWD to: %d', dname)
     os.chdir(dname)
 
-def make_temp_dir():
+def make_temp_dir(tmp_dir):
     """
     Make directory for temporary files relative to
     script's location if doesn't already exist.
     """
-    if not os.path.exists(TMP_DIR):
-        os.makedirs(TMP_DIR)
+    if not os.path.exists(tmp_dir):
+        os.makedirs(tmp_dir)
 
 def handle_script_args():
     """
@@ -283,7 +283,6 @@ def main():
     """
     change_to_cwd_of_script()
 
-    make_temp_dir()
 
     args = handle_script_args()
 
@@ -298,6 +297,8 @@ def main():
     config_check_interval = config.get('check_interval', '5')
     sleep_interval = int(config_check_interval) * 60
 
+    make_temp_dir(config['tmp_dir'])
+
     if args.daemon == True:
         log.info('Running in daemon mode')
         while True:
@@ -307,7 +308,8 @@ def main():
                                         config['sftp_hostname'],
                                         config['sftp_port'],
                                         config['sftp_username'],
-                                        config['sftp_private_key_file'])
+                                        config['sftp_private_key_file'],
+                                        config['tmp_dir'])
             except Exception as exception:
                 log.error('Exception occurred processing logs: %s', exception)
                 log.exception(exception)
@@ -319,7 +321,8 @@ def main():
                                 config['sftp_hostname'],
                                 config['sftp_port'],
                                 config['sftp_username'],
-                                config['sftp_private_key_file'])
+                                config['sftp_private_key_file'],
+                                config['tmp_dir'])
 
 if __name__ == '__main__':
     main()
