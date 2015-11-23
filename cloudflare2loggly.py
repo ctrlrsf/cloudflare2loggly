@@ -172,9 +172,24 @@ def process_cloudflare_logs(loggly_token,
                               sftp_port,
                               sftp_username,
                               sftp_private_key_file)
-    sftp.login()
-    sftp_files = sftp.list_files()
 
+    # Log in
+    try:
+        sftp.login()
+    except Exception as exception:
+        log.error('Exception occurred logging into SFTP server: %s', exception)
+        log.exception(exception)
+        sftp.close()
+        return False
+
+    # List files on SFTP server
+    try:
+        sftp_files = sftp.list_files()
+    except Exception as exception:
+        log.error('Exception occurred getting list of files on SFTP server: %s', exception)
+        log.exception(exception)
+        sftp.close()
+        return False
 
     # Keep only files that match expected log file name format
     # Sample log file name: logs-2015_08_19-20_46_00.log.gz
@@ -184,23 +199,27 @@ def process_cloudflare_logs(loggly_token,
     log.info('Log files on SFTP server: %d', len(sftp_files))
 
     for sftp_file in sftp_files:
-        log.info('Processing file: %s', sftp_file)
+        try:
+            log.info('Processing file: %s', sftp_file)
 
-        local_file_name = tmp_dir + os.path.basename(sftp_file)
-        uncompressed_file_name = local_file_name.replace('.gz', '')
+            local_file_name = tmp_dir + os.path.basename(sftp_file)
+            uncompressed_file_name = local_file_name.replace('.gz', '')
 
-        log.debug('Downloading log file: %s', sftp_file)
-        sftp.get_file(sftp_file, local_file_name)
+            log.debug('Downloading log file: %s', sftp_file)
+            sftp.get_file(sftp_file, local_file_name)
 
-        log.debug('Uncompressing to: %s', uncompressed_file_name)
-        gunzip_file(local_file_name, uncompressed_file_name)
+            log.debug('Uncompressing to: %s', uncompressed_file_name)
+            gunzip_file(local_file_name, uncompressed_file_name)
 
-        process_cloudflare_log_file(loggly_token, loggly_tag, uncompressed_file_name)
+            process_cloudflare_log_file(loggly_token, loggly_tag, uncompressed_file_name)
 
-        log.debug('Deleting downloaded and uncompressed files.')
-        os.unlink(local_file_name)
-        os.unlink(uncompressed_file_name)
-        sftp.remove_file(sftp_file)
+            log.debug('Deleting downloaded and uncompressed files.')
+            os.unlink(local_file_name)
+            os.unlink(uncompressed_file_name)
+            sftp.remove_file(sftp_file)
+        except Exception as exception:
+            log.error('Exception processing file %s: %s', sftp_file, exception)
+            log.exception(exception)
 
     log.info('Finished processing CloudFlare logs')
 
