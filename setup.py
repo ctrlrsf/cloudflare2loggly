@@ -14,7 +14,7 @@ setup(
     name='cloudflare2loggly',
     description='Helper for pushing CloudFlare access logs to Loggly',
     long_description=longdesc,
-    version='0.0.2',
+    version='0.0.3',
     author='Rene Fragoso',
     author_email='ctrlrsf@gmail.com',
     url='https://github.com/ctrlrsf/cloudflare2loggly',
