@@ -17,6 +17,7 @@ class SFTPClient(object):
         Create the SFTPLib object for connection
         """
         self.sftp = None
+        self.transport = None
         self.hostname = hostname
         self.port = port
         self.username = username
@@ -29,14 +30,14 @@ class SFTPClient(object):
         try:
             rsa_key = paramiko.RSAKey.from_private_key_file(self.key_file)
 
-            transport = paramiko.Transport((self.hostname, self.port))
-            transport.connect(username=self.username, pkey=rsa_key)
+            self.transport = paramiko.Transport((self.hostname, self.port))
+            self.transport.connect(username=self.username, pkey=rsa_key)
 
-            self.sftp = paramiko.SFTPClient.from_transport(transport)
+            self.sftp = paramiko.SFTPClient.from_transport(self.transport)
         except Exception as exception:
             print('Caught exception: {}'.format(exception))
             LOG.error('Caught exception: %s', exception)
-            transport.close()
+            self.transport.close()
 
     def list_files(self):
         """
@@ -72,3 +73,4 @@ class SFTPClient(object):
         Close the SFTP connection
         """
         self.sftp.close()
+        self.transport.close()
